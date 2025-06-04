@@ -1,0 +1,244 @@
+{% extends "utilities/layout.html" %}
+{% block banner %}
+<div class="container-xxl py-3 bg-dark hero-header mb-3 d-none d-lg-block">
+    <div class="container text-center my-3 pt-3 pb-3">
+        <nav aria-label="breadcrumb"> </nav>
+    </div>
+</div>
+{% endblock banner %}
+{% block main %}
+
+   <div class="container">
+        <div class="row justify-content-center py-2 shadow">
+            <div class="col text-center">
+                <h2>Product Details</h2>
+            </div>
+        </div>
+        <div class="row justify-content-center mb-2 p-3">
+        
+            <div class="col-lg-3 d-flex flex-column">
+                <div class="owl-carousel owl-theme">
+                    {% for image in product.image.split('*') %}
+                    <div class="item">
+                        <div class="my-2 d-flex justify-content-center">
+                            <img src="/static/products/{{image}}" alt="{{product.name}}" class="w-100" height="200" />
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>    
+        </div>
+        <div class="row justify-content-center py-4">
+            <div class="col-lg-6 d-flex flex-column">
+                <h5 class="text-muted">Name: {{product.name}}</h5>
+                <h5 class="text-muted">Price: N{{product.price}}</h5>
+                
+                <p class="fs-5">Product Details</p>
+                <span class="text-justified mb-3">{{product.description}}</span>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
+                    {% if session.get('useronline') != None %}
+                    <a onclick="addToCart('{{product.id}}')" class="btn btn-warning btn-md col-12 col-md-5 noround mb-3 mb-md-0">Add to Cart</a>
+                    {% else %}
+                    <a class="btn btn-warning btn-md col-12 col-md-5 noround mb-3 mb-md-0" data-bs-target="#loginModal" data-bs-toggle="modal">Add to Cart</a>
+                    {% endif %}
+                    <button class="btn btn-success btn-md col-12 col-md-5 noround checkout hidden">Continue to Cart</button>
+                </div>
+
+                <p class="text-center">Share this product with your friends.</p>
+                <div class="mb-3 d-flex justify-content-center">
+                    <a href="#" class="share-it pe-3 py-2"> <i class="fab fa-facebook text-primary"></i> Share</a>
+                    <a href="#" class="share-it pe-3 py-2"> <i class="fab fa-twitter"></i> Share</a>
+                    <a href="#" class="pin-it py-2 pe-3"> <i class="fab fa-pinterest text-danger"></i> Pin it</a>
+                </div>
+            </div>
+        </div>
+        {% if products | length > 1 %}
+            <h2 class="text-center py-3 my-5 bg-light" id="sub-title"></h2>
+            <div class="row g-3 g-md-4 justify-content-center justify-content-md-start mx-1 mx-lg-0" id="product-container">
+                
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock main %}
+
+
+{% block customJS %}
+<script>
+
+    //Fetching and displaying all products from the database
+    document.body.onload = function(){
+        const number_of_cart_items = "{{number_of_cart_items}}";
+        if (number_of_cart_items > 0){
+            $('.checkout').removeClass('hidden');
+        }
+
+        $.getJSON({
+            url: "/get-products/",
+            success: function(response) {
+                if (response.status == "success") {
+                    const useronline = "{{session.get('useronline')}}"; 
+                    let productHtml = "";
+                    $("#product-container").empty();
+
+                    response.product_list.forEach(product => {
+                        // Determine online status icon
+                        let wishlistHtml = '';
+                        let cartButtonHtml = '';
+
+                        // Wishlist html based on the users wishlsit details
+                        if (useronline != 'None') {
+                            if (product.onWishlist) {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-solid fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            } else {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-regular fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            // User is not online
+                            wishlistHtml += `
+                                <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-bs-target="#loginModal" data-bs-toggle="modal">
+                                    <i class="fa-regular fa-heart fs-5 wishlistIcon"></i>
+                                </a>
+                            `;
+                        }
+
+                        // Cart button based on users online status
+                        if (useronline != 'None'){
+                            cartButtonHtml += `<a type="button" class="text-body add-to-cart" data-product-id="${product.id}"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        } else {
+                            cartButtonHtml += `<a type="button" class="text-body" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        }
+
+                        const images = product.image.split('*');
+                        if (images.length > 0) {
+                            productHtml += `
+                                <div class="col-lg-3 col-md-4 col-6">
+                                    <div class="product-item">
+                                        <a href="/product-details/${product.id}/" class="text-decoration-none">
+                                            <div class="position-relative bg-light overflow-hidden">
+                                                <img class="w-100" src="/static/products/${images[0]}" alt="..." height="170" title="Click image to view product details">
+                                                <input type="hidden" name="cartItem" class="cartItem" value="${product.id}">
+                                            </div>
+                                        </a>
+                                        <div class="text-center p-2">
+                                            <a class="d-block text-dark mb-2">${product.name}</a>
+                                            <span class="text-primary text-center">
+                                            N${product.price}
+                                            </span>
+                                            <div class="d-flex mt-2">
+                                                <small class="w-75 text-center py-2 border"">
+                                                    ${cartButtonHtml}
+                                                    <input type="hidden" name="cartItem" class="cartItem" value="${product.id}">
+                                                </small>
+                                                <small class="w-25 py-2 border"> ${wishlistHtml} </small>
+                                            </div>      
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        };
+                    });
+                    $("#product-container").append(productHtml);
+                    $("#sub-title").html("Other top products");
+
+                    // Attach event listeners after content is added
+                    $('.add-to-cart').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToCart(productId);
+                    });
+                    // Attach event listeners to wishlist
+                    $('.wishlist').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToWishlist(productId);
+                    });
+
+                } else if (response.status == "not-found"){
+                    $("#product-container").html("<p class='d-flex justify-content-center'>No products found.</p>");
+                }
+            },
+            error: function(error) {
+                $("#product-container").html("<p class='d-flex justify-content-center'>Something went wrong. Please, try again.</p>");
+            }
+        });
+    }
+    
+    function addToCart(productId) {   
+        $.ajax({
+            url: `/add-to-cart/${productId}/`,
+            type: "POST",
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response) {
+                if (response.status === "success") {
+                    swal({
+                        icon: 'success',
+                        text: 'Product added to cart',
+                        timer: 3000,
+                        buttons: false,
+                    });
+                    $('.cart_items_count').text(response.number_of_cart_items);
+                    window.location.href=`/product-details/${productId}`;
+                } else {
+                    alert("Failed to add product to cart.");
+                }
+            },
+            error: function(error) {
+                alert("Something went wrong. Please try again.");
+            }
+        });
+    }
+    
+    //Continue to cart
+    $('.checkout').click(function(){
+        window.location.href='/cart-details/';    
+    });
+
+    $('.owl-carousel').owlCarousel({
+        items: 1, 
+        loop: true,
+        dots: true, 
+        nav: true,
+        autoplay: true,
+        navText: ["<span class='fa fa-angle-left'></span>", "<span class='fa fa-angle-right'></span>"]
+    })
+    $('.owl-nav').addClass('d-flex justify-content-between');
+    $('.owl-dots').addClass('text-danger');
+  
+    //Add and remove product from wishlist
+    const addToWishlist = (productId) => {   
+        const isRegular = $('.wishlistIcon').hasClass('fa-regular');
+        let actionURL;
+        if (isRegular) {
+            actionURL = `/add-to-wishlist/${productId}/`;
+        } else {
+            actionURL = `/remove-from-wishlist/${productId}/`;
+        }
+        $.ajax({
+            url: actionURL,
+            type: 'POST',
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response){
+                if (response.status === 'success') {
+                    
+                    $('.wishlistIcon').toggleClass('fa-regular');
+                    $('.wishlistIcon').toggleClass('fa-solid');
+                    swal({
+                        text: response.message,
+                        icon: "success",
+                        buttons: false,
+                        timer: 3000,
+                    });
+                }
+            } 
+        });
+    };
+</script>
+{% endblock customJS %}

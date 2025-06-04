@@ -1,0 +1,157 @@
+
+{% extends 'index.html' %}
+{% load static %}
+{% block title %} Registration {% endblock title %}
+
+{% block main %}
+<div class="container-xxl position-relative p-0">
+    <div class="container-xxl bg-dark hero-header min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="row w-100 justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-light bg-transparent">
+                    <div class="card-header bg-light text-center mb-0">
+                        <a href="{% url 'home' %}" class="p-0 d-flex justify-content-center align-items-center">
+                            <span class="text-primary mt-3">
+                                <img class="logo large-screen" src="{% static 'img/logo.PNG' %}" alt="groove-kitchen-logo" height="47">
+                                <img class="logo small-screen w-100" src="{% static 'img/logo.PNG' %}" alt="groove-kitchen-logo" height="40">
+                            </span>
+                        </a>
+                        <h4 class="logo large-screen"> Create an account. </h4>
+                        <h5 class="logo small-screen"> Create an account. </h5>
+                    </div>
+                    <div class="card-body mx-md-2">
+                        <div class="mt-1 mb-4 text-start" id="invalid"></div>
+                        <form id="registrationForm" action="{% url 'registration' %}" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Firstname" aria-required="true" required>
+                                        <label for="first_name">Firstname</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Lastname" aria-required="true" required>
+                                        <label for="last_name">Lastname</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="email" id="email_address" name="email_address" class="form-control" placeholder="Email Address" aria-required="true" required>
+                                <label for="email_address">Email Address</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" id="password" name="password" class="form-control" placeholder="Password" aria-required="true" minlength="8" required>
+                                <label for="password">Password</label>
+                            </div>
+                            <button type="button" class="btn btn-primary col-12 btn-lg" id="submit-btn">Create Account</button>
+                        </form>
+                         <p class="text-light mt-3 d-flex justify-content-end">Already have an account? <a href="{% url 'login_view' %}" class="text-primary ms-2"> Login.</a> </p>
+                    </div>
+                </div>
+            </div>
+        </div>            
+    </div>
+</div>
+{% endblock main %}
+
+{% block customJS %}
+<script>
+    $(document).ready(function(){
+        $('#first_name').focus();
+
+        document.getElementById('submit-btn').addEventListener('click', function(event){
+            event.preventDefault();
+            
+            let isValid = true;
+
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const email_address = document.getElementById('email_address').value;
+            const password = document.getElementById('password').value;
+            
+            if (!first_name) {
+                isValid = false
+                document.getElementById('first_name').classList.add('is-invalid');
+            } else {
+                document.getElementById('first_name').classList.remove('is-invalid');
+            }
+            if (!last_name) {
+                isValid = false
+                document.getElementById('last_name').classList.add('is-invalid');
+            } else {
+                document.getElementById('last_name').classList.remove('is-invalid');
+            }
+            if (!email_address) {
+                isValid = false
+                document.getElementById('email_address').classList.add('is-invalid');
+            } else {
+                document.getElementById('email_address').classList.remove('is-invalid');
+            }
+            if (!password) {
+                isValid = false
+                document.getElementById('password').classList.add('is-invalid');
+            } else {
+                document.getElementById('password').classList.remove('is-invalid');
+            }
+
+            if (isValid) {
+                const myForm = document.querySelector('#registrationForm');
+                const formData = new FormData(myForm);
+                const submitButton = document.getElementById('submit-btn');
+                
+                submitButton.disabled = true;
+                submitButton.innerHTML = `
+                    <div class='d-flex align-items-center justify-content-center'>
+                        <span class='spinner-border text-light' aria-hidden='true'></span>
+                        <span role='status' class="sr-only">submitting...</span>
+                    </div>
+                `;
+
+                $.ajax({
+                    url: "{% url 'registration' %}",
+                    type: "POST",
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    data: formData,
+                    success: function(response){
+                        submitButton.disabled = false;
+                        submitButton.innerText = 'Create Account';
+
+                        if (response.status == 'email_taken'){
+                            document.getElementById('email_address').classList.add('is-invalid');
+                            document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-info"></i> Email address is already registered!</p>`;
+                        }
+                        else if (response.status == 'invalid_email'){
+                            document.getElementById('email_address').classList.add('is-invalid');
+                            document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-info"></i> Please provide a valid email address!</p>`;
+                        }
+                        else if (response.status == 'short_password'){
+                            document.getElementById('password').classList.add('is-invalid');
+                            document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-info"></i> Password must contain 8 or more characters.</p>`;
+                        }
+                        else if (response.status == 200) {
+
+                            document.querySelectorAll('input').forEach(input => input.value = '');
+
+                            document.getElementById('invalid').innerHTML = `<p class="alert alert-success"> <i class="fa-solid fa-circle-check"></i> Account was Created Successfully!</p>`;
+                            
+                            function redirectToLogin() {
+                                window.location.replace("{% url 'login_view' %}");
+                            };
+                            const timer = setTimeout(redirectToLogin, 3000);
+                        }
+                        else {
+                            document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-xmark"></i> Please complete all data fields!</p>`;
+                        }
+                    },
+                });
+            } else {
+                document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-xmark"></i> Please complete all data fields!</p>`;
+            } 
+        });
+    });
+</script>
+{% endblock customJS %}

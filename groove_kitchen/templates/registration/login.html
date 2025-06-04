@@ -1,0 +1,121 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock title %}
+
+{% block main %}
+
+<div class="container-xxl position-relative p-0">
+    <div class="container-xxl bg-dark hero-header min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="row w-100 justify-content-center">
+                <div class="col-md-6">
+                    <div class="card border-light bg-transparent">
+                        <div class="card-header text-center bg-light">
+                            <a href="{% url 'home' %}" class="p-0 d-flex justify-content-center align-items-center">
+                                <span class="text-primary mt-3">
+                                    <img class="logo large-screen" src="{% static 'img/logo.PNG' %}" alt="groove-kitchen-logo" height="47">
+                                    <img class="logo small-screen w-100" src="{% static 'img/logo.PNG' %}" alt="groove-kitchen-logo" height="40">
+                                </span>
+                            </a>
+                            <h4 class="logo large-screen"> Customer Login. </h4>
+                            <h5 class="logo small-screen"> Customer Login. </h5>
+                            
+                        </div>
+                        <div class="card-body">
+                            <div class="text-start" id="invalid"> </div>
+                            <form action="{% url 'login_view' %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-floating my-3">
+                                    <input type="email" name="email_address" id="email_address" class="form-control", placeholder="Enter Your Email Address" />
+                                    <label for="email_address">Email Address</label>
+                                </div>
+                                <div class="form-floating mb-2">
+                                    <input type="password" name="password" id="password" class="form-control", placeholder="Enter Your Password" />
+                                    <label for="password">Password</label>
+                                </div>
+                                <div class="form-text mb-3 d-flex justify-content-end">
+                                    <a href="{% url 'password_form' %}" class="text-primary fs-md-5 "> Forgot Password?</a>
+                                </div>
+                
+                                <button type="button" class="btn btn-primary col-12 btn-lg" id="login-btn">Login</button>
+                                
+                            </form>
+                        </div>                        
+                        <p class="form-text text-center text-light fs-md-5">New to Groove Kitchen? <a href="{% url 'registration' %}" class="text-primary">Create an account.</a></p>
+                    </div>
+                </div>
+        </div>            
+    </div>
+</div>
+
+{% endblock main %}
+{% block customJS %}
+<script>
+    window.onload = function(){
+        $('#email_address').focus();
+    }
+    document.getElementById('login-btn').addEventListener("click", function(event) {
+        event.preventDefault();
+
+        let isValid = true;
+        const email_address = $('#email_address').val();
+        const password = $('#password').val();
+
+        if (!email_address) {
+            isValid = false
+            document.getElementById('email_address').classList.add('is-invalid');
+        } else {
+            document.getElementById('email_address').classList.remove('is-invalid');
+        }
+        if (!password) {
+            isValid = false
+            document.getElementById('password').classList.add('is-invalid');
+        } else {
+            document.getElementById('password').classList.remove('is-invalid');
+        }
+
+        if (isValid){
+            const submitButton = document.getElementById('login-btn');
+                
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <div class='d-flex align-items-center justify-content-center'>
+                    <span class='spinner-border text-light' aria-hidden='true'></span>
+                    <span role='status' class="sr-only">submitting...</span>
+                </div>
+            `;
+
+            $.ajax({
+                url: "{% url 'login_view' %}",
+                type: "POST",
+                data: {
+                    "email_address": email_address,
+                    "password": password,
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                },
+                success: function(response){
+                    submitButton.disabled = false;
+                    submitButton.innerText = 'Login';
+                    if (response.status == 404){
+                        document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-xmark"></i> Invalid Login Credentials!</p>`;
+                    } else {
+                        document.getElementById('invalid').innerHTML = `<p class="alert alert-success"> <i class="fa-solid fa-circle-check"></i> Logged-in Successfully!</p>`;
+                        document.querySelectorAll('input').forEach(input => input.value = '');
+                        
+                        function redirectToLogin() {
+                            window.location.replace("{% url 'home' %}");
+                        };
+                        const timer = setTimeout(redirectToLogin, 1500);
+                    }
+                },
+            });
+
+        } else {
+            document.getElementById('invalid').innerHTML = `<p class="alert alert-danger"> <i class="fa-solid fa-circle-xmark"></i> Email and password are requried!</p>`;
+        }
+
+    })  
+    
+
+</script>
+{% endblock customJS %}

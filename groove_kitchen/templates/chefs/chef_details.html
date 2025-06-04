@@ -1,0 +1,361 @@
+{% extends "utilities/layout.html" %}
+{% block banner %}
+<div class="container-xxl py-3 bg-dark hero-header mb-3 d-none d-lg-block">
+    <div class="container text-center my-3 pt-3 pb-3">
+        <nav aria-label="breadcrumb">
+
+        </nav>
+    </div>
+</div>
+{% endblock banner %}
+
+{% block main %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col text-center py-2 shadow">
+                <h3>Chef's Detail</h3>
+            </div>
+        </div>
+        <div class="row justify-content-center py-4 shadow">
+            <div class="col-md-5 col-8 d-flex flex-column justify-content-center">
+                <div style="width: 300px">
+                    <img src="/static/photos/{{chef.customer_deets.dp}}" alt="..." class="img-fluid mb-3"/>
+                </div>
+                <span class="d-flex h6">
+                    {% if session.get('useronline') == chef.customerid %} 
+                        <i class="fa-solid fa-circle online me-2" style="color: green; font-size: x-small;"></i> 
+                    {% else %}
+                    <i class="fa-solid fa-circle me-2" style="color: grey; font-size: x-small;"></i> 
+                    {% endif %}
+                    <span class="pb-1"> {{ chef.customer_deets.firstname }} {{chef.customer_deets.lastname}} </span>
+                    {% if chef.verification == 'verified' %}
+                        <img src="/static/photos/verify.png" width="20" class="ms-1"/>
+                    {% endif %}
+                </span>
+                <p><i class="fa fa-location-dot"></i> {{chef.customer_deets.lga.name}}, {{chef.customer_deets.state.name}}, Nigeria</p>
+            </div>
+            <div class="col-md-6 mt-3 d-flex flex-column ms-5 ms-md-0">
+                {% if chef.biography %}
+                <div class="d-flex flex-column">
+                    <p class="text-primary"><i class="fa fa-circle-user"></i> Biography</p>
+                    <span>{{chef.biography}}</span>
+                </div>
+                {% endif %}
+                <p class="text-primary mt-2"><i class="fa fa-kitchen-set"></i> Specialities</p>
+                <ul class="p-0 m-0" type="none">
+                    {% for speciality in chef_specialities %} 
+                    <li><i class="fa fa-circle-check"></i> {{speciality.name}}</li>
+                    {% endfor %}
+                </ul>
+                <div class="d-flex mt-3 flex-column">
+                    {% if signature_dishes %}
+                        <a href="" class="btn btn-dark col-md-6 col-10 mb-2" data-bs-target="#signatureModal" data-bs-toggle="modal">Signature Dishes</a>
+                    {% endif %}
+                    <a href="" class="btn btn-blue col-md-6 col-10" data-bs-target="#bookingModal" data-bs-toggle="modal">Book Now</a>
+                    
+                     <!--Caterer Booking-->
+                     <div class="modal fade" id="bookingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="bookingModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content rounded-0">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="bookingLabel">Booking Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{url_for('chef_details', cid=chef.id)}}" method="post" id="bookingForm">
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="text" name="fullname" class="form-control" id="name" placeholder="Your Fullname">
+                                                    <label for="name">Your Name</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="email" name="email" class="form-control" id="email" placeholder="Your Email">
+                                                    <label for="email">Your Email</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-floating date" id="date3" data-target-input="nearest">
+                                                    <input type="datetime" name="datetime" class="form-control datetimepicker-input" id="datetime" placeholder="Date & Time" data-target="#date3" data-toggle="datetimepicker" />
+                                                    <label for="datetime">Date & Time</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="text" name="address" class="form-control" id="address" placeholder="Your Home Address" />
+                                                    <label for="address">Your Address</label>
+                                                  </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-floating">
+                                                    <textarea class="form-control" placeholder="Service Description" name="message" id="message" style="height: 100px"></textarea>
+                                                    <label for="message">Service Description.</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <button class="btn btn-primary w-100 py-3" type="submit" id="book-button">Book Now</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Signature Dishes-->
+                    <div class="modal fade" id="signatureModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="signatureModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content rounded-0">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="signatureLabel">Price Listing</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p>Share with your friends.</p>
+                    <a href="#" class="share-it pe-3 py-2 text-blue" target="_blank" id="facebook"> <i class="fab fa-facebook text-blue"></i> Share</a>
+                    <a href="#" class="share-it pe-3 py-2 text-dark" target="_blank" id="twitter"> <i class="fab fa-twitter text-dark"></i> Tweet</a>
+                    {% if instagram_url %}
+                        <a href="https://www.instagram.com/{{instagram_url}}" class="share-it py-2 pe-3 text-danger" target="_blank"> <i class="fab fa-instagram text-danger"></i> Follow</a>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+        <div class="container">
+            <div class="section-header text-start mb-3 wow fadeInRight" data-wow-delay="0.1s">
+                <h2 class="py-3 my-5 bg-light" id="sub-title"></h2>
+            </div>
+            <div class="tab-content">
+                <div id="tab-0" class="tab-pane fade show p-0 active">
+                    <div class="row g-3 mx-1" id="chef-product">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock main %}
+
+{% block customJS %}
+<script>
+    
+    //Fetching and displaying all products from the chef
+    function fetchProducts(){
+        const chefId = "{{chef.customer_deets.id}}";
+        const chefFirstname = "{{chef.customer_deets.firstname}}";
+        $.getJSON({
+            url: `/get-products/${chefId}/`,
+            success: function(response) {
+                if (response.status == "success") {
+                    const useronline = "{{session.get('useronline')}}"; 
+                    let productHtml = "";
+                    $("#chef-product").empty();
+    
+                    response.product_list.forEach(product => {
+                        // Determine online status icon
+                        let wishlistHtml = '';
+                        let cartButtonHtml = '';
+
+                        // Wishlist html based on the users wishlsit details
+                        if (useronline != 'None') {
+                            if (product.onWishlist) {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-solid fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            } else {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-regular fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            // User is not online
+                            wishlistHtml += `
+                                <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-bs-target="#loginModal" data-bs-toggle="modal">
+                                    <i class="fa-regular fa-heart fs-5 wishlistIcon"></i>
+                                </a>
+                            `;
+                        }
+
+                        // Cart button based on users online status
+                        if (useronline != 'None'){
+                            cartButtonHtml += `<a type="button" class="text-body add-to-cart" data-product-id="${product.id}"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        } else {
+                            cartButtonHtml += `<a type="button" class="text-body" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        }
+
+                        const images = product.image.split('*');
+                        if (images.length > 0) {
+                            productHtml += `
+                                <div class="col-lg-2 col-md-3 col-6">
+                                    <div class="product-item">
+                                        <a href="/product-details/${product.id}/" class="text-decoration-none">
+                                            <div class="position-relative bg-light overflow-hidden">
+                                                <img class="w-100" src="/static/products/${images[0]}" alt="..." height="120" title="Click image to view product details">
+                                            </div>
+                                        </a>
+                                         <div class="text-center p-2">
+                                            <a class="d-block text-dark mb-2" href="#">${product.name}</a>
+                                            <span class="text-primary me-1 text-center">
+                                               N${product.price}
+                                            </span>
+                                            <div class="d-flex mt-2">
+                                                <small class="w-75 text-center py-2 border">
+                                                    ${cartButtonHtml}
+                                                </small>
+                                                <small class="w-25 py-2 border">${wishlistHtml}</small>
+                                            </div>      
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        };
+                    });
+                    $("#chef-product").append(productHtml);
+                    $("#sub-title").html(`${chefFirstname}'s products`);
+
+                    // Attach event listeners after content is added
+                    $('.add-to-cart').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToCart(productId);
+                       
+                    });
+                    // Attach event listeners to wishlist
+                    $('.wishlist').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToWishlist(productId);
+                    });
+    
+                }
+                // else if (response.status == "not-found"){
+                //     $("#chef-product").html("<p class='d-flex justify-content-center' style='margin-top: 50px; min-height: 200px'>No products found.</p>");
+                // }
+            },
+            error: function(error) {
+                $("#chef-product").html("<p class='d-flex justify-content-center' style='margin-top: 50px; min-height: 200px'>Something went wrong. Please, try again.</p>");
+            },
+        })
+    }
+    fetchProducts();
+
+    // Add product to cart
+    function addToCart(productId) {   
+        $.ajax({
+            url: `/add-to-cart/${productId}/`,
+            type: "POST",
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response) {
+                if (response.status === "success") {
+                    swal({
+                        icon: 'success',
+                        text: 'Product added to cart',
+                        timer: 3000,
+                        buttons: false,
+                    })
+                    $('.cart_items_count').text(response.number_of_cart_items);
+                } else {
+                    alert("Failed to add product to cart.");
+                }
+            },
+            error: function(error) {
+                alert("Something went wrong. Please try again.");
+            }
+        });
+    }
+
+    //Add and remove product from wishlist
+    const addToWishlist = (productId) => {   
+        const isRegular = $('.wishlistIcon').hasClass('fa-regular');
+        let actionURL;
+        if (isRegular) {
+            actionURL = `/add-to-wishlist/${productId}/`;
+        } else {
+            actionURL = `/remove-from-wishlist/${productId}/`;
+        }
+        $.ajax({
+            url: actionURL,
+            type: 'POST',
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response){
+                if (response.status === 'success') {
+                    $('.wishlistIcon').removeClass('fa-regular');
+                    $('.wishlistIcon').addClass('fa-solid');
+                    $('.wishlist_count').text(response.number_of_wishlist_item);
+                    swal({
+                        text: response.message,
+                        icon: "success",
+                        buttons: false,
+                        timer: 3000,
+                    });
+                }
+            } 
+        });
+    };
+
+    //Handling booking chef
+    $('#book-button').click(function(e){
+        e.preventDefault();
+        const chefid = "{{chef.id}}";
+        const myForm = document.querySelector('#bookingForm');
+        const formData = new FormData(myForm);
+        
+        $.ajax({
+            url: `/chef-details/${chefid}/`,
+            type: "POST",
+            cache: false,
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: function(response){
+                if (response.status == 'success'){
+                    swal({
+                        text: "Your booking request has been sent.",
+                        icon: "success",
+                        timer: 3000,
+                        buttons: false,
+                    });
+                } else {
+                    swal({
+                        text: "Please complete all data fields.",
+                        icon: "error",
+                        buttons: false,
+                    });
+                }
+            },
+        })
+    })
+
+    //Sharing to social media
+    //facebook
+    document.getElementById('facebook').addEventListener('click', function(e) {
+        e.preventDefault();
+        const postUrl = encodeURIComponent(window.location.href);
+        const postTitle = "Chef {{chef.customer_deets.firstname}} {{chef.customer_deets.lastname}}'s Profile";
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${postUrl}&t=${postTitle}`;
+        window.open(facebookUrl, '_blank', 'width=600,height=400');
+    });
+    //twitter
+    document.getElementById('twitterShare').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const postUrl = encodeURIComponent(window.location.href);
+        const postTitle = "Chef {{chef.customer_deets.firstname}} {{chef.customer_deets.lastname}}'s Profile";
+        const twitterUrl = `https://x.com/intent/tweet?url=${postUrl}&text=${postTitle}`;
+        window.open(twitterUrl, '_blank', 'width=600,height=400');
+    });
+    
+</script>
+{% endblock customJS %}

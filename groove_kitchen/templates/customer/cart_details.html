@@ -1,0 +1,400 @@
+{% extends "utilities/layout.html" %}
+{% block banner %}
+<div class="container-xxl py-3 bg-dark hero-header mb-3 d-none d-lg-block">
+    <div class="container text-center my-3 pt-3 pb-3">
+        <nav aria-label="breadcrumb">
+
+        </nav>
+    </div>
+</div>
+{% endblock banner %}
+
+{% block main %}
+    <div class="container">
+        <div class="row justify-content-between">
+            {% if product_list %}
+            <div class="col-lg-8 col-md-6 shopping-cart" style="overflow:auto">
+              <div style="height:100%">
+                <h2>Shopping Cart ({{product_list | length}}) {% if number_of_cart_items <= 1 %}item{% else %}items{% endif %}</h2>
+                <div class="d-flex justify-content-between">
+                    <p class="text-muted">Store / Shopping cart</p>
+                    <button title="Clear your shopping cart." class="btn btn-danger btn-sm clear-cart">Clear cart</button> 
+                </div>
+                <hr />
+               {% for product in product_list %}
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="d-flex align-items-center">
+                          {% set images = product.image.split('*') %}
+                            {% if images | length > 0 %}
+                            <img src="/static/products/{{images[0]}}" alt="..." width="100" height="50"/>
+                            {% endif %}
+                            <div class="text-muted ms-2 d-flex flex-column">
+                                <span class="me-auto text-dark" style=" overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{ product.name }}</span>
+                                <span>NGN{{product.price}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-1 justify-content-end">
+                    <div class="col d-flex align-items-center">  
+                        <a type="button" class="delete-item me-4" data-delete-id="{{product.id}}" title="Remove from cart"><i class="fas fa-trash text-danger" style="font-size: small"></i> <span class="text-muted d-none d-md-inline-block" style="font-size: small"> Remove </span></a>
+                        
+                        {% if session.get('useronline') != None and product.wishlist_deets %}
+                           
+                        <a type="button" class="d-flex justify-content-end align-items-center" onclick="addToWishlist('{{product.id}}')" title="Add to wishlist">
+                            <i class="fa-solid fa-heart wishlistIcon" style="font-size: medium"></i> <span class="ms-2 text-muted d-none d-md-inline-block" style="font-size: small"> Save </span>
+                        </a>
+                        {% else %}
+                        <a type="button" class="d-flex justify-content-end align-items-center" onclick="addToWishlist('{{product.id}}')" title="Add to wishlist">
+                            <i class="fa-regular fa-heart wishlistIcon" style="font-size: medium"></i> <span class="ms-2 text-muted d-none d-md-inline-block" style="font-size: small"> Save </span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="col d-flex align-items-center justify-content-end">
+                        {% if product.quantity == 1 %}
+                        <a class="text-primary me-3"><i class="fa fa-minus" style="font-size: 0.8rem"></i></a>
+                        {% else %}
+                        <a class="text-primary me-3" onclick="removeFromCart('{{product.id}}')" title="Reduce item quantity"><i class="fa fa-minus" style="font-size: 0.8rem"></i></a>
+                        {% endif %}
+                        <span class="border text-center" style="width: 30px; font-size: 1rem">{{product.quantity}}</span>
+                        <a class="text-primary me-2 ms-3" onclick="addToCart('{{product.id}}')" title="Increase item quantity"><i class="fa fa-plus" style="font-size: 0.8rem"></i></a>
+                    </div>
+                    <div class="col d-flex flex-column align-items-end text-muted mb-1">
+                        <span style="font-size: smaller">x{{product.quantity}} items</span>
+                        <span class="text-dark">NGN{{product.price * product.quantity}} </span>
+                    </div>
+                    <hr />
+                </div>
+                {% endfor %}
+                
+              </div>
+            </div>
+
+            <div class="col-lg-4 ps-lg-5 ps-md-3 col-md-6">
+                <div class="row">
+                    <div class="col d-flex flex-column" style="line-height: 2rem;">
+                        <div>
+                            <p class="mb-2 text-dark"><i class="fa fa-circle-check"></i> Delivery options </p>
+                            <input type="radio" name="delivery" id="pickup" value="pickup" onclick="toggleAddressBox();" checked/> <label for="pickup">Pickup</label>
+                            <input type="radio" name="delivery" id="home-delivery" value="home-delivery" class="ms-3" onclick="toggleAddressBox();"/> <label for="home-delivery">Home Delivery </label>
+                            <div id="addressBox" style="display: none;">
+                                <span>Provide the delivery address.</span>
+                                <input type="address" name="address" placeholder="Enter delivery address" class="form-control noround"/>
+                            </div>
+                        </div>
+                        <hr />
+                        <h4 style="font-style: italic">Checkout</h4>
+                        <div class="d-flex text-muted">
+                            <span>Subtotal</span>
+                            <span class="ms-auto">N{{final_total}}</span>
+                        </div>
+                        <div class="d-flex text-muted">
+                            <span>Delivery</span>
+                            <span class="ms-auto">Free</span>
+                        </div>
+                        <div class="d-flex fw-bold fs-5 text-dark">
+                            <span>TOTAL</span>
+                            <span class="ms-auto">N{{final_total}}</span>
+                        </div>
+                        <hr />
+                        <button class="btn btn-success mb-3 col-12 shadow checkout">Checkout {% if final_total %}({{final_total}}){% endif %}</button>
+                    </div>
+                </div>
+            </div>
+          
+          {% else %}
+            <div class="my-4 d-flex flex-column justify-content-center align-items-center">
+                <h2>Shopping Cart</h2>
+                <i class="fas fa-shopping-cart display-3"></i>
+                <p>Your shopping cart is empty.</p>
+                <button onclick="window.location.href='/top-listing/'" class="btn btn-primary"> Start shopping</button>
+            </div>
+          {% endif %}
+        </div>
+    </div>
+
+    <h2 class="text-center py-3 my-5 bg-light" id="sub-title"></h2>
+    <div class="row g-3 g-md-4 justify-content-center justify-content-md-start mx-1 mx-lg-0" id="product-container">
+        
+    </div>
+
+{% endblock main %}
+
+{% block footer %}{% endblock footer %}
+
+{% block customJS %}
+<script>
+    //Fetching and displaying all products from the database
+    document.body.onload = function(){
+        $.getJSON({
+            url: "/get-products/",
+            success: function(response) {
+                if (response.status == "success") {
+                    const useronline = "{{session.get('useronline')}}"; 
+                    let productHtml = "";
+                    $("#product-container").empty();
+    
+                    response.product_list.forEach(product => {
+                        // Determine online status icon
+                        let wishlistHtml = '';
+                        let cartButtonHtml = '';
+
+                        // Wishlist html based on the users wishlsit details
+                        if (useronline != 'None') {
+                            if (product.onWishlist) {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-solid fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            } else {
+                                wishlistHtml += `
+                                    <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-product-id="${product.id}">
+                                        <i class="fa-regular fa-heart wishlistIcon fs-5"></i>
+                                    </a>
+                                `;
+                            }
+                        } else {
+                            // User is not online
+                            wishlistHtml += `
+                                <a type="button" class="d-flex justify-content-center mt-1 wishlist" data-bs-target="#loginModal" data-bs-toggle="modal">
+                                    <i class="fa-regular fa-heart fs-5 wishlistIcon"></i>
+                                </a>
+                            `;
+                        }
+
+                        // Cart button based on users online status
+                        if (useronline != 'None'){
+                            cartButtonHtml += `<a type="button" class="text-body add-to-cart" data-product-id="${product.id}"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        } else {
+                            cartButtonHtml += `<a type="button" class="text-body" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fa fa-shopping-cart text-primary me-2"></i>Add to cart</a>`;
+                        }
+
+                        const images = product.image.split('*');
+                        if (images.length > 0) {
+                            productHtml += `
+                                <div class="col-lg-2 col-md-3 col-6">
+                                    <div class="product-item">
+                                        <a href="/product-details/${product.id}/" class="text-decoration-none">
+                                            <div class="position-relative bg-light overflow-hidden">
+                                                <img class="w-100" src="/static/products/${images[0]}" alt="..." height="120" title="Click image to view product details">
+                                                <input type="hidden" name="cartItem" class="cartItem" value="${product.id}">
+                                            </div>
+                                        </a>
+                                         <div class="text-center p-2">
+                                            <a class="d-block text-dark mb-2">${product.name}</a>
+                                            <span class="text-primary text-center">
+                                               N${product.price}
+                                            </span>
+                                            <div class="d-flex mt-2">
+                                                <small class="w-75 text-center py-2 border"">
+                                                    ${cartButtonHtml}
+                                                    <input type="hidden" name="cartItem" class="cartItem" value="${product.id}">
+                                                </small>
+                                                <small class="w-25 py-2 border"> ${wishlistHtml} </small>
+                                            </div>      
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        };
+                    });
+                    $("#product-container").append(productHtml);
+                    $("#sub-title").html("Featured Products");
+
+                    // Attach event listeners after content is added
+                    $('.add-to-cart').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToCart(productId);
+                       
+                    });
+                    // Attach event listeners to wishlist
+                    $('.wishlist').on('click', function() {
+                        const productId = $(this).data('product-id');
+                        addToWishlist(productId);
+                    });
+    
+                } else if (response.status == "not-found"){
+                    $("#product-container").html("<p class='d-flex justify-content-center'>No products found.</p>");
+                }
+            },
+            error: function(error) {
+                $("#product-container").html("<p class='d-flex justify-content-center'>Something went wrong. Please, try again.</p>");
+            }
+        });
+    }
+
+    function addToCart(productId) {   
+        $.ajax({
+            url: `/add-to-cart/${productId}/`,
+            type: "POST",
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response) {
+                if (response.status === "success") {
+                    swal({
+                        icon: 'success',
+                        text: 'Product added to cart',
+                        timer: 3000,
+                        buttons: false,
+                    })
+                    $('.cart_items_count').text(response.number_of_cart_items);
+                    window.location.href='/cart-details/';
+                } else {
+                    alert("Failed to add product to cart.");
+                }
+            },
+            error: function(error) {
+                alert("Something went wrong. Please try again.");
+            }
+        });
+    }
+
+    //Remove product from cart
+    const removeFromCart = (productId) => {
+        $.ajax({
+            url: `/remove-from-cart/${productId}/`,
+            type: "POST",
+            data: {"csrf_token": "{{csrf_token()}}"},
+            success: function(response){
+                if (response.status == 'success'){
+                    $('.cart_items_count').text(response.number_of_cart_items);
+                    window.location.replace('/cart-details/');
+                }
+            }
+        })
+    }
+    
+    //Add and remove product from wishlist
+     const addToWishlist = (productId) => {   
+        const isRegular = $('.wishlistIcon').hasClass('fa-regular');
+        let actionURL;
+        if (isRegular) {
+            actionURL = `/add-to-wishlist/${productId}/`;
+        } else {
+            actionURL = `/remove-from-wishlist/${productId}/`;
+        }
+        $.ajax({
+            url: actionURL,
+            type: 'POST',
+            data: {"csrf_token": "{{csrf_token()}}" },
+            success: function(response){
+                if (response.status === 'success') {
+                    
+                    $('.wishlistIcon').toggleClass('fa-regular');
+                    $('.wishlistIcon').toggleClass('fa-solid');
+                    swal({
+                        text: response.message,
+                        icon: "success",
+                        buttons: false,
+                        timer: 3000,
+                    });
+                }
+            } 
+        });
+    };
+        
+    // Continue to checkout
+    $('.checkout').click(function(){
+        $.ajax({
+            url: "/checkout/",
+            type: "POST",
+            data: {
+                "firstname": "{{customer.firstname}}",
+                "lastname": "{{customer.lastname}}",
+                "email": "{{customer.email}}",
+                "amount": "{{final_total}}",
+                "csrf_token": "{{csrf_token()}}"
+            },
+            success: function(response){
+                window.location.replace('/checkout/');
+            },
+        });
+    })
+    
+    // Clear all products from cart
+    $('.clear-cart').click(function(){
+        const text = "Do you really want to clear your cart?";
+        const comment = "Your cart has been cleared."
+        const url = "/clear-cart/";
+        const itemid = '';
+        handleDeleteConfirmation(url, text, comment, itemid);
+    })
+    
+    //Remove product from cart
+    document.addEventListener('DOMContentLoaded', function() {
+        const text = "Do you really want to remove this item?";
+        const comment = "Product has been removed";
+        const url = "delete-item";
+        const removeItem = document.querySelectorAll('.delete-item');
+        removeItem.forEach(link => {
+            link.addEventListener('click', function(event) {     
+                const itemid = $(this).data('delete-id');
+                handleDeleteConfirmation(url, text, comment, itemid);   
+            });
+        });
+    });
+    
+    //Product removal confirmation message using swal
+    function handleDeleteConfirmation(url, text, comment, itemid){
+        swal({
+            text: `${text}`,
+            icon: "warning",
+            buttons: {
+                confirm: {
+                    text: "Yes",
+                    className: "btn btn-sm btn-success",
+                },
+                cancel: {
+                    visible: true,
+                    className: "btn btn-sm btn-danger",
+                },
+            },
+        }).then((Delete) => {
+            if (Delete) {
+                if (itemid == ''){
+                    $.ajax({
+                        url: `${url}`,
+                        success: function(response){
+                            swal({
+                                text: `${comment}`,
+                                icon: "success",
+                                buttons: false,
+                            });
+                            window.location.replace('/cart-details/');
+                        }
+                    });
+                }else {
+                    $.ajax({
+                        url: `/${url}/${itemid}/`,
+                        type: "POST",
+                        data: {"csrf_token": "{{csrf_token()}}"},
+                        success: function(response){
+                            swal({
+                                text: `${comment}`,
+                                icon: "success",
+                                buttons: false,
+                            });
+                            window.location.replace('/cart-details/');
+                        }
+                    });
+                }
+                
+            } else {
+                swal.close();
+            }
+        }); 
+    }
+    // Handling address box toggling
+    function toggleAddressBox() {
+        var deliveryOption = document.querySelector('input[name="delivery"]:checked').value;
+        var addressBox = document.getElementById('addressBox');
+        
+        if (deliveryOption === 'home-delivery') {
+            addressBox.style.display = 'block';
+        } else {
+            addressBox.style.display = 'none';
+        }
+    }
+</script>
+{% endblock customJS %}

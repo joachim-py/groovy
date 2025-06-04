@@ -1,0 +1,58 @@
+{% extends "chefs/dashboard_layout.html" %}
+
+{% block main %}
+    <h3>Get Verified and Enjoy More Benefits</h3>
+    <form action="" method="post">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+        <div class="mb-3">
+            <ol class="list-group list-group-flush list-group-numbered">
+                <li class="d-flex align-items-center list-group-item">
+                    <span class="fs-5 me-auto"> Verify your registered email address </span>
+                    <a type="button" class="btn btn-primary rounded-5" id="send-button"> Send Code</a>
+                </li>
+                <li class="d-flex align-items-center list-group-item">
+                    <span class="fs-5"> Verify your home address, provide a utility bill slip (water, waste, light, etc).</span> <br/>
+                    <input type="file" name="utility" id="utility" class="form-control-file me-auto">
+                    <a type="button" class="btn btn-primary rounded-5" id="upload-button"> Upload</a>
+                </li>
+            </ol>
+        </div>
+    </form>
+
+{% endblock main %}
+
+{% block customJS %}
+<script>
+    $('#send-button').click(function(){
+        const id = "{{chef.customerid}}";
+        $.ajax({
+            url: '/send-verification-mail/',
+            type: "POST",
+            data: {"id": id, "csrf_token": "{{csrf_token()}}"},
+            success: function(response){
+                if (response.status == 'success'){
+                    swal({
+                        text: "Verification link has been send to your email.",
+                        icon: "success",
+                        timer: 3000,
+                        buttons: false,
+                    });           
+                } else {
+                    swal({
+                        text: "We are unable to send verification link. Please try again later.",
+                        icon: "error",
+                        timer: 3000,
+                        buttons: false,
+                    });
+                }
+            },
+            error: function(error){
+                alert("Something went wrong, please try again.");
+            }
+        })
+    });
+    $('#upload-button').click(function(){
+        alert("Clicked")
+    });
+</script>
+{% endblock customJS %}

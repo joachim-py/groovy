@@ -1,0 +1,144 @@
+{% extends "chefs/dashboard_layout.html" %}
+
+{% block main %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-round">
+                {% set messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'success' %}
+                            <span class="alert alert-success"><i class="fa fa-circle-check"></i> {{message}}</span>
+                            {% else %}
+                            <span class="alert alert-danger"><i class="fa fa-circle-xmark"></i> {{message}}</span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <div class="card-title">My Products</div>
+                        <a href="{{url_for('chef_create_product')}}" class="btn btn-secondary text-center">Create Product <i class="fa fa-plus-circle"></i></a>
+                    </div>
+                </div>
+                <div class="card-body p-0 pb-3">
+                    <div class="table-responsive">
+                        {% if products %}
+                        <div class="container-fluid">       
+                            <table class="table bg-secondary myTable">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Product Image</th>
+                                        <th scope="col">Product Name</th>
+                                        <th scope="col">Price (NGN)</th>
+                                        <th scope="col">Edit</th>
+                                        <th scope="col">Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                <tr>
+                                    <td>{{loop.index}}</td>
+                                    <td>
+                                        {% set images = product.image.split('*') %}
+                                        {% if images | length > 0 %}
+                                            <img class="w-50" src="/static/products/{{images[0]}}" alt="..." height="50" />
+                                        {% endif %}
+                                    </td>
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.price}}</td>
+                                    <td><a href="#" data-bs-target="#editModal-{{product.id}}" data-bs-toggle="modal" class="btn btn-primary btn-sm">Edit</a></td>
+                                    <td><a href="{{url_for('chef_delete_product', id=product.id)}}" class="btn btn-danger btn-sm" onclick="return confirm('Do you really want to delete this product?')">Delete</a></td>
+                                </tr>
+                                    <!-- edit modal start -->
+                                <div class="modal fade" id="editModal-{{product.id}}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-0">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editLabel">Product: {{product.name}}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{url_for('chef_edit_product', id=product.id)}}" method="post" enctype="multipart/form-data">
+                                                    <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="mb-3">
+                                                                <label for="desc">Description</label>
+                                                                <textarea name="desc" id="desc" cols="65" rows="3" value="{{product.description}}" class="form-control">{{product.description}}</textarea>
+                                                            </div>
+                                                            <div class="form-floating mb-3">
+                                                                <input type="text" name="product_name" id="product_name" value="{{product.name}}" placeholder="Product Name" class="form-control border">
+                                                                <label for="product_name">Product Name</label>
+                                                            </div>
+                                                            <div class="form-floating mb-3">
+                                                                <input type="text" name="price" id="price" value="{{product.price}}" placeholder="Price" class="form-control border">
+                                                                <label for="price">Price</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3 d-flex justify-content-end">
+                                                        <button type="submit" class="btn btn-dark col-12" data-product-id="{{product.id}}" id="editSubmitBtn" style="text-transform: none;">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- edit modal end -->
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="row my-5">
+                            <h6 class="text-center">You haven't created any products yet.</h6>
+                        </div>
+                        {% endif %} 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>            
+    
+{% endblock main %}
+{% block customJS %}
+<script>
+    function readURL(input) {
+        if (input.files && input.files.length > 0) {
+            for (let i = 0; i < input.files.length; i++) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('.photo-preview-' + i).attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[i]);
+            }
+        }
+    }    
+
+    $('#photo').change(function(){
+        readURL(this);
+    });
+    
+    $('#editSubmitBtn').click(function(){
+        const price = $('#price').val();
+        const product_name = $('#product_name').val();
+        const desc = $('#desc').val();
+        const productId = $(this).data('product-id');
+        
+        $.ajax({
+            url: `/chef-edit-product/${productId}/`,
+            type: "POST",
+            data: {
+                "price": price,
+                "desc": desc,
+                "product_name": product_name,
+                "csrf_token": "{{csrf_token()}}"
+            },
+        })
+    })
+</script>
+{% endblock customJS %}
+

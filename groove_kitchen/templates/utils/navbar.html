@@ -1,0 +1,53 @@
+ {% load static %}
+ <nav class="navbar navbar-expand-md navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0 sticky-top shadow">
+    <a href="{% url 'home' %}" class="navbar-brand p-0 me-auto">
+        <span class="text-primary mt-3">
+            <img class="logo large-screen" src="{% static 'img/logo.PNG' %}" alt="groove-kitchen-logo" height="40">
+            <img class="logo small-screen w-100" src="{% static 'img/small-logo.PNG' %}" alt="groove-kitchen-logo" height="100">
+        </span>
+    </a>
+
+     <!-- shopping cart logo -->
+     <a href="" class="nav-item nav-link d-md-none" style="position:relative;">
+        <i class="fas fa-shopping-cart text-light" style="font-size: 1.5rem"></i>
+        <span style="position: absolute; right: 8px; font-size: small; border-radius: 10px" class="text-light px-2 cart_items_count bg-primary">{{number_of_cart_items}}</span>
+    </a>
+     <!-- Shopping cart logo -->
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="fa fa-bars"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="navbar-nav py-0 pe-4 ms-auto">
+            <a href="" class="nav-item nav-link me-3">Community</a>
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown">Menu</a>
+                <div class="dropdown-menu m-0">
+                    <a href="" class="dropdown-item">Top Listings</a>
+                    <a href="" class="dropdown-item">Load Orders</a>
+                </div>
+            </div>
+
+            {% if request.user.is_authenticated %}
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle me-3" data-bs-toggle="dropdown"><i class="far fa-circle-user" style="font-size: 1.4rem;"></i></a>
+                    <div class="dropdown-menu m-0">        
+                        <a href="" class="dropdown-item"><i class="fas fa-circle-user"></i> My Profile</a>
+                        <a href="" class="dropdown-item"><i class="fas fa-circle-info"></i> My Orders</a>
+                        <a href="" class="dropdown-item"><i class="fas fa-heart"></i> My Wishlist</a>
+                        <a href="" class="dropdown-item"><i class="fas fa-money-bills"></i> Payment History</a>
+                        <a href="{% url 'logout_view' %}" class="dropdown-item text-danger"><i class="fa-solid fa-right-to-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'login_view' %}" class="nav-item nav-link me-3"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            {% endif %}
+
+            <a href="" class="nav-item nav-link d-none d-md-inline-block me-3" style="position:relative;">
+                <i class="fas fa-shopping-cart" style="font-size: 1.5rem"></i>
+                <span style="position: absolute; right: -2px; font-size: x-small; border-radius: 10px" class="text-light px-2 cart_items_count bg-primary">{{number_of_cart_items}}</span>
+            </a>
+
+        </div>
+    </div>
+</nav>

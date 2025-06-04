@@ -1,0 +1,175 @@
+{% extends 'utilities/layout.html' %}
+{% block search %}
+    <div class="pb-3"></div>
+{% endblock search %}
+
+{% block main %}
+    <div class="container-xxl pb-2">
+        <div class="container">      
+            <form action="{{url_for('chef_registration')}}" method="post" enctype="multipart/form-data" id="form">
+                <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <!-- <h3 class="text-decoration-underline">Personal Information</h3> -->
+                        <div class="picture_wrapper">
+                            <input type="file" name="photo" id="picture" class="picture" />
+                            <img src="/static/photos/avatar.png" alt="..." class="w-100 photo" height="150"/>
+                        </div>
+                        <p class="text-center text-danger">[Allowed image formarts are - JPG, PNG, JPEG, WEBP, or JFIF.]</p>
+                        
+                        <div class="mb-3">
+                            <input type="tel" name="phone" id="phone" class="form-control py-3" minlength="14" maxlength="14" required/>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <select name="states" id="states" class="form-select py-3">
+                                    <option> State </option>
+                                    {% for state in states %}
+                                    <option value="{{state.id}}">{{state.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <select name="city" id="city" class="form-select py-3">
+                                    <option>City</option>
+                                </select>
+                            </div>
+                            
+                        </div>
+                        <div class="mb-3">
+                            <select name="specialities" id="specialities" class="form-select mb-3 py-3" multiple>
+                                {% for speciality in specialities %}
+                                <option value="{{speciality.id}}">{{speciality.name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-primary col-12 col-md-4 register-btn">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock main %}
+{% block customJS %}
+<script>
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('.photo').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $('.picture').change(function(){
+        readURL(this);
+    });
+
+    $('#states').change(function(){
+        const state = $(this).val();
+      
+        $.getJSON({
+          url: `/get_city/${state}/`,
+          success: function(city){
+            $('#city').empty();
+            for (let i = 0; i < city.length; i++) {
+                $('#city').append(`<option value='${city[i].id}'>${city[i].name}</option>`);
+            }
+          }
+        });
+    });
+
+    $('.register-btn').click(function(){
+        const myForm = document.querySelector('#form');
+        const formData = new FormData(myForm);
+        const customer_type = "{{customer.customer_type}}";
+        const customer_name = "{{customer.firstname}}";
+        let comment = '';
+
+        if (customer_type == 'customer'){
+            $.ajax({
+                url: "/register-as-a-chef/",
+                type: "POST",
+                cache: false,
+                processData: false,
+                contentType: false,
+                data: formData,
+                beforeSend: function(response){
+                    $('.register-btn').html(`
+                        <div class='d-flex align-items-center justify-content-center'>
+                            <span class='spinner-border text-light aria-hidden='true'></span>
+                            <span role='status' class="sr-only">processing...</span>
+                        </div>
+                    `)
+                },
+                success: function(response){
+                    if (response.status == 'error'){
+                        swal({
+                            text: "Please complete all fields!",
+                            icon: "error",
+                            buttons: false,
+                        }); 
+                    } else if (response.status == 'invalid-format') {
+                        swal({
+                            text: "Image formart is not allowed.",
+                            icon: "error",
+                            timer: 3000,
+                            buttons: false,
+                        });
+                        
+                    } else {
+                        swal({
+                            text: "You are successfully registered as a professional chef.",
+                            icon: "success",
+                            timer: 3000,
+                            buttons: false,
+                        });
+                        
+                        function redirectToLogin() {
+                            window.location.replace('/chef-dashboard/');
+                        };
+                        const timer = setTimeout(redirectToLogin, 3000);
+                    }
+                    $(".register-btn").text('Submit');
+                },       
+            });
+
+        } else {
+            if (customer_type == 'chef'){ comment = "You are already registered as a professional chef."; }
+            else if (customer_type == 'caterer'){ comment = "You are already registered as a professional caterer.";}
+            else { comment = "You are already registered as a community agent.";}
+            lunchComment(comment, customer_name);
+        }
+
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.querySelector("#phone");
+        const iti = window.intlTelInput(phoneInput, {
+            initialCountry: "auto",
+            geoIpLookup: function(callback) {
+                fetch('https://ipinfo.io?token=bcb827c04a7581') 
+                    .then(response => response.json())
+                    .then(data => callback(data.country))
+                    .catch(() => callback('us'));
+            },
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+        });
+
+        // Retrieve the selected country code
+        phoneInput.addEventListener('countrychange', function() {
+            const countryCode = iti.getSelectedCountryData().dialCode;
+            if (!phoneInput.value.startsWith('+' + countryCode)) {
+                phoneInput.value = '+' + countryCode + '' + phoneInput.value.replace(/^\+\d+\s*/, '');
+            }
+        });
+
+    });
+
+</script>
+{% endblock customJS %}
