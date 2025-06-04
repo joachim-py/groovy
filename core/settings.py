@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-r#e6z%q@ny%(y=538_^zhsek6h(8%9$y=-b(14)c8g@kct6=14
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "groovy.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "groovekitchen.onrender.com"]
 
 
 # Application definition
